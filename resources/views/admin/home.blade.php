@@ -14,8 +14,29 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col">
-                                                <h6 class="fw-normal fs-14">Total Sales</h6>
-                                                <h3 class="mb-2 number-font fs-24">0</h3>
+                                                <h6 class="fw-normal fs-14">Total Active Shade</h6>
+                                                <h3 class="mb-2 number-font fs-24">{{@$tot_shade}}</h3>
+                                                <p class="text-muted mb-0"> <span class="text-danger"> <i
+                                                            class="ri-arrow-down-s-line bg-danger text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
+                                                        0.2%</span> last month </p>
+                                            </div>
+                                            <div class="col col-auto mt-2">
+                                                <div
+                                                    class="counter-icon bg-success-gradient box-shadow-success rounded-circle  ms-auto mb-0">
+                                                    <i class="fe fe-briefcase mb-5 "></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12 col-xl-3">
+                                <div class="card custom-card overflow-hidden">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <h6 class="fw-normal fs-14">Total Active Flock</h6>
+                                                <h3 class="mb-2 number-font fs-24">{{@$tot_flock}}</h3>
                                                 <p class="text-muted mb-0"> <span class="text-primary"> <i
                                                             class="ri-arrow-up-s-line bg-primary text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
                                                         3%</span> last month </p>
@@ -30,12 +51,13 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-lg-6 col-md-6 col-sm-12 col-xl-3">
                                 <div class="card custom-card overflow-hidden">
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col">
-                                                <h6 class="fw-normal fs-14">Total Purchase</h6>
+                                                <h6 class="fw-normal fs-14">Total Available Chicks </h6>
                                                 <h3 class="mb-2 number-font fs-24">0</h3>
                                                 <p class="text-muted mb-0"> <span class="text-secondary"> <i
                                                             class="ri-arrow-up-s-line bg-secondary text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
@@ -72,32 +94,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12 col-xl-3">
-                                <div class="card custom-card overflow-hidden">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col">
-                                                <h6 class="fw-normal fs-14">Total Expenses</h6>
-                                                <h3 class="mb-2 number-font fs-24">0</h3>
-                                                <p class="text-muted mb-0"> <span class="text-danger"> <i
-                                                            class="ri-arrow-down-s-line bg-danger text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
-                                                        0.2%</span> last month </p>
-                                            </div>
-                                            <div class="col col-auto mt-2">
-                                                <div
-                                                    class="counter-icon bg-success-gradient box-shadow-success rounded-circle  ms-auto mb-0">
-                                                    <i class="fe fe-briefcase mb-5 "></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
                 <br /><br />
             </div>
+
             <!-- Feed -->
             <div class="row">
 

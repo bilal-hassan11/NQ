@@ -7,6 +7,9 @@ use App\Models\Item;
 use App\Models\Account;
 use App\Models\Staff;
 use App\Models\FeedInvoice;
+use App\Models\Flock;
+use App\Models\Shade;
+
 use App\Models\ChickInvoice;
 use App\Models\MurghiInvoice;
 use App\Models\MedicineInvoice;
@@ -19,6 +22,16 @@ class HomeController extends AdminController
     public function index()
     {
         $current_month = date('m');
+
+        //Total Active Shade 
+        $tot_shade = Shade::where('status', 'active')->count();
+        //Total Active Shade 
+        $tot_flock = Flock::where('status', 'active')->count();
+
+        //Total Active Shade Chick 
+        $tot_shade = Shade::where('status', 'active')->count();
+        //Total Medicine Purchase  
+        $tot_flock = Flock::where('status', 'active')->count();
 
         // Sale Feed
         $tot_sale_feed_begs = FeedInvoice::where('type', 'Sale')->whereMonth('date', $current_month)->sum('quantity');

@@ -4493,4 +4493,119 @@ class ReportController extends Controller
             return $pdf->download('.'.$names.'..pdf');
     }
 
+    public function MortalityReport(Request $req){
+
+
+        if(isset($req->shade_id)){
+
+                
+            
+        }else{
+
+            $data = array(
+                'title' => 'Mortality report',
+                'shades' => Shade::latest()->get(),
+            );
+        }
+
+        return view('admin.report.mortality_report')->with($data);
+    }
+
+    public function MortalityReportPdf(Request $req){
+            //dd($req->from_date);
+            $toDate = Carbon::parse($req->from_date);
+            $fromDate = Carbon::parse($req->to_date);
+
+            $days = $fromDate->diffInDays($toDate);
+            $account_detail = Account::with(['grand_parent'])->where('id',hashids_decode($req->parent_id))->latest()->get();
+             $names = $account_detail[0]->name . $days . 'Days' ;
+            $data = array(
+                'account_ledger'  => AccountLedger::when(isset($req->parent_id), function($query) use ($req){
+                                                $query->where('account_id', hashids_decode($req->parent_id));
+                                            })->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                                                $query->whereDate('date', '>=', $req->from_date)->whereDate('date', '<=', $req->to_date);
+                                            })->orderBy('date', 'asc')->get(),
+                'to_date' => $req->to_date,
+                'from_date' => $req->from_date,
+                'days' => $days,
+                'names' =>  $names ,
+                'account_opening' => $account_detail ,
+                'account_name' =>  Account::findOrFail(hashids_decode($req->parent_id)),
+
+            );
+
+
+
+
+
+
+            $account_detail = Account::with(['grand_parent'])->where('id',hashids_decode($req->parent_id))->latest()->get();
+
+            if($account_detail[0]->account_nature == "debit" ){
+                $detail = "Assets";
+
+            }else{
+                $detail = "Not Assets";
+
+            }
+
+
+            if($account_detail[0]->account_nature == "debit"){
+
+                $open_credit = AccountLedger::where('account_id',hashids_decode($req->parent_id))->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                    $query->whereDate('date', '<', $req->from_date);
+                })->where('credit' ,'!=',0)->sum('credit');
+                $open_debit = AccountLedger::where('account_id',hashids_decode($req->parent_id))->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                    $query->whereDate('date', '<', $req->from_date);
+                })->where('debit' ,'!=',0)->sum('debit');
+
+                $grand_open = ($account_detail[0]->opening_balance + $open_debit) - $open_credit;
+
+
+
+
+
+            }else{
+
+                $open_credit = AccountLedger::where('account_id',hashids_decode($req->parent_id))->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                    $query->whereDate('date', '<', $req->from_date);
+                })->where('credit' ,'!=',0)->sum('credit');
+                $open_debit = AccountLedger::where('account_id',hashids_decode($req->parent_id))->  when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                    $query->whereDate('date', '<', $req->from_date);
+                })->where('debit' ,'!=',0)->sum('debit');
+
+                $grand_open = ($account_detail[0]->opening_balance + $open_debit) - $open_credit;
+
+                //dd($open_credit);
+                //$grand_open = ($account_detail[0]->opening_balance + $open_credit) - $open_debit;
+            }
+
+            $account_detail[0]->opening_balance = abs($grand_open) ;
+
+            $data = array(
+                'title' => 'Account Report',
+                'account_types' => AccountType::whereNull('parent_id')->get(),
+                'accounts'  => Account::latest()->get(),
+                'account_opening' => $account_detail ,
+                'account_parent' => $detail ,
+                'cash_in_hand' => false,
+                'party_name' => Account::where('id',hashids_decode($req->parent_id))->latest()->get(),
+                'to_date' => $req->to_date,
+                'from_date' => $req->from_date,
+                'days' => $days,
+                'names' =>  $names ,
+                'account_opening' => $account_detail ,
+                'account_name' =>  Account::findOrFail(hashids_decode($req->parent_id)),
+                'account_ledger'  => AccountLedger::when(isset($req->parent_id), function($query) use ($req){
+                                                $query->where('account_id', hashids_decode($req->parent_id));
+                                            })->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                                                $query->whereDate('date', '>=', $req->from_date)->whereDate('date', '<=', $req->to_date);
+                                            })->orderBy('date','asc')->get()
+            );
+
+
+            $pdf = Pdf::loadView('admin.report.account_pdf', $data);
+            return $pdf->download('.'.$names.'..pdf');
+    }
+
 }

@@ -65,5 +65,15 @@ class ShadeController extends Controller
         ]);
     }
 
+    public function getActiveFlock($shadeId)
+    {
+        $flock = Flock::where('shade_id', $shadeId)
+                    ->where('status', 'active') // or ->where('is_active', 1)
+                    ->first();
+
+        return response()->json($flock);
+    }
+
+
 
 }
