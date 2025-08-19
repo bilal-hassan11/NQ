@@ -58,8 +58,8 @@
                                 <tr>
                                     <th>Item</th>
                                     <th>Qty</th>
-                                    <th>Weight</th>
-                                    <th>No of Carrats</th>
+                                    <th>Net Weight</th>
+                                    <th>No of Carates</th>
                                     <th>Weight Detection</th>
                                     <th>Extra Detection</th>
                                     <th>Final Weight</th>
@@ -78,10 +78,10 @@
                                         <input type="text" name="subtotal" class="form-control text-right" value="0"
                                             style="text-align: right;" readonly>
                                     </td>
-                                    {{-- <td>
+                                    <td>
                                         <button type="button" class="btn-sm btn-info fa fa-plus add-row"
                                             title="Add Row"></button>
-                                    </td> --}}
+                                    </td> 
                                 </tr>
                                 <tr>
                                     <td colspan="8" style="text-align: right;">
@@ -518,18 +518,22 @@
                     let weight_detection = parseFloat($row.find(".weight_detection").val()) || 0;
                     let qty = weight - (weight_detection + extra_detection);
                     let rate = parseFloat($row.find(".purchaseRate").val()) || 0;
+                    
+                    let Crates_weight = Carrats / 2;
 
                     let amount = qty * rate;
                     let disInPercentage = parseFloat($row.find(".dis_in_percentage").val()) || 0;
-
-                    if (!isManualUpdate) {
-                        let discountAmount = amount * disInPercentage / 100;
-                        $row.find(".dis_in_rs").val(discountAmount.toFixed(2));
-                    } else {
-                        let discountAmount = parseFloat($row.find(".dis_in_rs").val()) || 0;
-                        let discountPercentage = (discountAmount / amount) * 100;
-                        $row.find(".dis_in_percentage").val(discountPercentage.toFixed(2));
-                    }
+                    
+                    var net_weight = weight - Crates_weight;
+                    //alert(net_weight);
+                    // if (!isManualUpdate) {
+                    //     let discountAmount = amount * disInPercentage / 100;
+                    //     $row.find(".dis_in_rs").val(discountAmount.toFixed(2));
+                    // } else {
+                    //     let discountAmount = parseFloat($row.find(".dis_in_rs").val()) || 0;
+                    //     let discountPercentage = (discountAmount / amount) * 100;
+                    //     $row.find(".dis_in_percentage").val(discountPercentage.toFixed(2));
+                    // }
 
                     let finalAmount = amount - parseFloat($row.find(".dis_in_rs").val()) || 0;
                     $row.find(".amount").val(amount.toFixed(2));

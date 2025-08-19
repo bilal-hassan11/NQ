@@ -813,12 +813,14 @@
 
                                         <li><a href="{{ route('admin.reports.income-report') }}" class="slide-item">
                                                 Income Report</a></li>
-                                        <li><a href="{{ route('admin.reports.daybook_report') }}" class="slide-item">
+                                        <li><a href="{{ route('admin.reports.newdaybook_report') }}" class="slide-item">
                                                 DayBook Report</a></li>
                                         <li><a href="{{ route('admin.reports.cashflowreport') }}" class="slide-item">
                                                 CashFlow Report</a></li>
                                         <li><a href="{{ route('admin.reports.account') }}" class="slide-item"> Party
                                                 Account Ledger</a></li>
+                                        <li><a href="{{ route('admin.reports.mortality-report') }}" class="slide-item"> Mortality Report</a></li>
+                                                
                                         <li><a href="{{ route('admin.reports.item_stock_report') }}"
                                                 class="slide-item">Items Stock Report </a></li>
 

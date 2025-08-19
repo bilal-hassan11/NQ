@@ -16,67 +16,18 @@ use App\Models\FeedInvoice;
 use App\Models\ChickInvoice;
 use App\Models\MedicineInvoice;
 use App\Models\MurghiInvoice;
-
-
+use App\Models\Shade;
+use App\Models\Mortality;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
 
-    public function item_stock_report(Request $req){
-
-        if(isset($req->to_date)){
-
-           $from_date = $req->from_date;
-           $to_date = $req->to_date;
-
-           $items = Item::select(
-               'items.*',
-               DB::raw("(SELECT SUM(sale_feed.quantity) FROM sale_feed WHERE items.id = sale_feed.item_id AND sale_feed.date BETWEEN ? AND ?) AS sale_feed_sum_quantity"),
-               DB::raw("(SELECT SUM(purchase_feed.quantity) FROM purchase_feed WHERE items.id = purchase_feed.item_id AND purchase_feed.date BETWEEN ? AND ?) AS purchase_feed_sum_quantity"),
-               DB::raw("(SELECT SUM(return_feed.quantity) FROM return_feed WHERE items.id = return_feed.item_id AND return_feed.date BETWEEN ? AND ?) AS return_feed_sum_quantity")
-
-               )
-               ->where('type', $type)
-               ->addBinding($from_date, 'select')
-               ->addBinding($to_date, 'select')
-               ->addBinding($from_date, 'select')
-               ->addBinding($to_date, 'select')
-               ->where('category_id',3)
-               ->get();
-
-        }else{
-
-           $from_date = date('Y-m-d');
-           $to_date = date('Y-m-d');
-
-           $items = Item::withSum('sale_feed', 'quantity')->withSum('purchase_feed', 'quantity')->withSum('return_feed', 'quantity')
-           ->where('category_id',3)->get();
-
-        }
-
-        $data = array(
-            'title' => 'Item Report',
-            'items' => $items,
-            'is_update'=> true,
-            'from_date' => $from_date,
-            'to_date' => $to_date,
-
-
-        );
-
-       return view('admin.report.item_stock_report')->with($data);
-
-    }
-
-    public function DayBookReport(Request $req){
-
-
+    
+    public function NewDayBookReport(Request $req){
 
         if(isset($req->from_date)){
-
-
 
             //get Opening
             $c_cash_credit  = CashBook::whereDate('entry_date', '<', $req->from_date)->sum('receipt_ammount');
@@ -90,12 +41,12 @@ class ReportController extends Controller
 
             $c_net_c = $ccc_net - $ex_cc;
 
-            //dd($c_net_c);
             //get Closing
             $cash_credit  = CashBook::whereDate('entry_date', '<=', $req->from_date)->sum('receipt_ammount');
             $cash_debit  = CashBook::whereDate('entry_date', '<=', $req->from_date)->sum('payment_ammount');
             $ex  = Expense::whereDate('date', '<=', $req->from_date)->sum('ammount');
             $day_exp = Expense::whereDate('date', '=', $req->from_date)->sum('ammount');
+            
             //get Cashbook
             $c  = CashBook::whereDate('entry_date', '=', $req->from_date)->latest()->get();
 
@@ -119,17 +70,8 @@ class ReportController extends Controller
                 'cashbook'  => $c,
                 'is_update' => true,
                 'from_date' => $req->from_date ,
-                'purchase_medicine'  => PurchaseMedicine::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'sale_medicine'     => SaleMedicine::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'return_medicine'   => ReturnMedicine::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'purchase_murghi'   => PurchaseMurghi::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'sale_murghi'       => SaleMurghi::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'purchase_chick'   => PurchaseChick::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'sale_chick'       => SaleChick::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'purchase_feed'   => PurchaseFeed::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'sale_feed'      => SaleFeed::with(['item','account'])->whereDate('date', $req->from_date)->latest()->get(),
-                'return_feed' => ReturnFeed::with(['item', 'account'])->whereDate('date', $req->from_date)->latest()->get(),
-
+                'purchase_murghi'   => MurghiInvoice::with(['item','account'])->where('type','Purchase')->whereDate('date', $req->from_date)->latest()->get(),
+                'sale_murghi'       => MurghiInvoice::with(['item','account'])->where('type','Sale')->whereDate('date', $req->from_date)->latest()->get(),
                 'cash'          => CashBook::with(['account'])->whereDate('entry_date', $req->from_date)->latest()->get(),
 
 
@@ -140,39 +82,23 @@ class ReportController extends Controller
 
             $current_month = date('Y-m-d');
 
-            //Feed
-            $tot_sale_feed = SaleFeed::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_feed = PurchaseFeed::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_return_feed = ReturnFeed::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-
-            //Medicine
-            $tot_sale_medicine = SaleMedicine::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_medicine = PurchaseMedicine::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_return_medicine = ReturnMedicine::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            //dd($tot_sale_medicine);
-
-            //Chicks
-            $tot_sale_chick = SaleChick::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_chick = PurchaseChick::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-
-
             //Murghi
-            $tot_sale_murghi = SaleMurghi::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_murghi = PurchaseMurghi::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
+            $tot_sale_murghi = MurghiInvoice::with(['item', 'account'])->where('type','Sale')->whereDate('date', $current_month)->latest()->get();
+            $tot_purchase_murghi = MurghiInvoice::with(['item', 'account'])->where('type','Purchase')->whereDate('date', $current_month)->latest()->get();
+            
             //Cashflow
             //get Opening
             $c_cash_credit  = CashBook::sum('receipt_ammount');
             $c_cash_debit  = CashBook::sum('payment_ammount');
             $c_ex  = Expense::sum('ammount');
 
-            $c_open = 2909858;
+            $c_open = 0;
             $ccc_net = $c_open + $c_cash_credit;
 
             $ex_cc = $c_ex + $c_cash_debit ;
 
             $c_net_c = $ccc_net - $ex_cc;
 
-            //dd($c_net_c);
             //get Closing
             $cash_credit  = CashBook::sum('receipt_ammount');
             $cash_debit  = CashBook::sum('payment_ammount');
@@ -204,27 +130,15 @@ class ReportController extends Controller
                 'debit'  => $net_debit,
                 'cashbook'  => $c,
                 'date'      => $current_month,
-
-                'purchase_medicine'  => $tot_purchase_medicine,
-                'sale_medicine'     =>  $tot_sale_medicine,
-                'return_medicine'     =>  $tot_return_medicine,
-
                 'purchase_murghi'   => $tot_purchase_murghi,
                 'sale_murghi'       => $tot_sale_murghi,
-                'purchase_chick'   => $tot_purchase_chick,
-                'sale_chick'       => $tot_sale_chick,
-                'purchase_feed'   => $tot_purchase_feed,
-                'sale_feed'       => $tot_sale_feed,
-                'return_feed'       => $tot_return_feed,
-
             );
         }
 
-
-        return view('admin.report.daybook_report')->with($data);
+        return view('admin.report.new_daybook_report')->with($data);
     }
 
-    public function DayBookPdf(Request $req){
+    public function NewDayBookPdf(Request $req){
 
         if(isset($req->from_date)){
 
@@ -233,7 +147,7 @@ class ReportController extends Controller
             $c_cash_debit  = CashBook::whereDate('date', '<', $req->from_date)->sum('payment_ammount');
             $c_ex  = Expense::whereDate('date', '<', $req->from_date)->sum('ammount');
 
-            $c_open = 2909858;
+            $c_open = 0;
             $ccc_net = $c_open + $c_cash_credit;
 
             $ex_cc = $c_ex + $c_cash_debit ;
@@ -270,18 +184,9 @@ class ReportController extends Controller
                 'cashbook'  => $c,
 
                 'from_date' => $req->from_date ,
-                'purchase_medicine'  => PurchaseMedicine::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'sale_medicine'     => SaleMedicine::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'return_medicine'   => ReturnMedicine::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'purchase_murghi'   => PurchaseMurghi::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'sale_murghi'       => SaleMurghi::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'purchase_chick'   => PurchaseChick::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'sale_chick'       => SaleChick::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'purchase_feed'   => PurchaseFeed::with(['item',                             'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'sale_feed'      => SaleFeed::with(['item',                                     'account'])->whereDate('date', $req                         ->from_date)->latest()->get(),
-                'return_feed' => ReturnFeed::with(['item', 'account']                           )->whereDate('date', $req->from_date                        )->latest()->get(),
-
-                'cash'          => CashBook::with(['account'])->whereDate                   ('date', $req->from_date)->latest()->get(),
+                'purchase_murghi'   => MurghiInvoice::with(['item','account'])->where('type','Purchase')->whereDate('date', $req->from_date)->latest()->get(),
+                'sale_murghi'       => MurghiInvoice::with(['item','account'])->where('type','Sale')->whereDate('date', $req->from_date)->latest()->get(),
+                'cash'          => CashBook::with(['account'])->whereDate('date', $req->from_date)->latest()->get(),
 
 
             );
@@ -291,25 +196,11 @@ class ReportController extends Controller
 
             $current_month = date('Y-m-d');
 
-            //Feed
-            $tot_sale_feed = SaleFeed::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_feed = PurchaseFeed::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_return_feed = ReturnFeed::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-
-            //Medicine
-            $tot_sale_medicine = SaleMedicine::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_medicine = PurchaseMedicine::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_return_medicine = ReturnMedicine::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            //dd($tot_sale_medicine);
-
-            //Chicks
-            $tot_sale_chick = SaleChick::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_chick = PurchaseChick::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-
-
+            
             //Murghi
-            $tot_sale_murghi = SaleMurghi::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
-            $tot_purchase_murghi = PurchaseMurghi::with(['item', 'account'])->whereDate('date', $current_month)->latest()->get();
+            $tot_sale_murghi = MurghiInvoice::with(['item', 'account'])->where('type','Sale')->whereDate('date', $current_month)->latest()->get();
+            $tot_purchase_murghi = MurghiInvoice::with(['item', 'account'])->where('type','Purchase')->whereDate('date', $current_month)->latest()->get();
+            
             //Cashflow
             //get Opening
             $c_cash_credit  = CashBook::sum('receipt_ammount');
@@ -355,26 +246,16 @@ class ReportController extends Controller
                 'debit'  => $net_debit,
                 'cashbook'  => $c,
                 'date'      => $current_month,
-
-                'purchase_medicine'  => $tot_purchase_medicine,
-                'sale_medicine'     =>  $tot_sale_medicine,
-                'return_medicine'     =>  $tot_return_medicine,
-
                 'purchase_murghi'   => $tot_purchase_murghi,
                 'sale_murghi'       => $tot_sale_murghi,
-                'purchase_chick'   => $tot_purchase_chick,
-                'sale_chick'       => $tot_sale_chick,
-                'purchase_feed'   => $tot_purchase_feed,
-                'sale_feed'       => $tot_sale_feed,
-                'return_feed'       => $tot_return_feed,
-
             );
         }
 
-        $pdf = Pdf::loadView('admin.report.daybook_report_pdf', $data);
-        return $pdf->download('daybook_report_pdf.pdf');
+        $pdf = Pdf::loadView('admin.report.new-daybook_report_pdf', $data);
+        return $pdf->download('new-daybook_report_pdf.pdf');
 
     }
+   
 
     public function cashflowReport(Request $req){
 
@@ -969,7 +850,7 @@ class ReportController extends Controller
                 'accounts'  => Account::latest()->get(),
                 'item_name' => false,
                 'account_name' => false,
-                'id'  => "purchasemurghi",
+                'id'  => "MurghiInvoice",
                 'all_reports_values' => MurghiInvoice::with('item','account')->where('type','Sale')
                                         ->latest()->get(),
 
@@ -2520,7 +2401,7 @@ class ReportController extends Controller
         }
 
         //Purchase Murghi
-        if($req->id == "purchasemurghi"){
+        if($req->id == "MurghiInvoice"){
 
             if(isset($req->account_id) || isset($req->item_id) || isset($req->to_date)){
 
@@ -2535,7 +2416,7 @@ class ReportController extends Controller
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
                         'is_update' => true,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -2559,7 +2440,7 @@ class ReportController extends Controller
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
                         'is_update' => true,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -2584,7 +2465,7 @@ class ReportController extends Controller
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
                         'is_update' => true,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -2608,7 +2489,7 @@ class ReportController extends Controller
                         'is_update' => true,
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -2630,7 +2511,7 @@ class ReportController extends Controller
                     'accounts'  => Account::latest()->get(),
                     'item_name' => false,
                     'account_name' => false,
-                    'id'  => "purchasemurghi",
+                    'id'  => "MurghiInvoice",
                     'all_reports_values' => "",
 
 
@@ -4153,7 +4034,7 @@ class ReportController extends Controller
         }
 
         //Purchase Murghi
-        if($req->id == "purchasemurghi"){
+        if($req->id == "MurghiInvoice"){
 
             if(isset($req->account_id) || isset($req->item_id) || isset($req->to_date)){
 
@@ -4166,7 +4047,7 @@ class ReportController extends Controller
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
                         'is_update' => true,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -4190,7 +4071,7 @@ class ReportController extends Controller
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
                         'is_update' => true,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -4215,7 +4096,7 @@ class ReportController extends Controller
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
                         'is_update' => true,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -4238,7 +4119,7 @@ class ReportController extends Controller
                         'is_update' => true,
                         'from_date' => $req->from_date ,
                         'to_date' => $req->to_date ,
-                        'id'  => "purchasemurghi",
+                        'id'  => "MurghiInvoice",
                         'all_reports_values'  => MurghiInvoice::where('type','Purchase')->when(isset($req->item_id), function($query) use ($req){
                                                         $query->where('item_id', hashids_decode($req->item_id));
                                                     })->when(isset($req->account_id), function($query) use ($req){
@@ -4260,7 +4141,7 @@ class ReportController extends Controller
                     'accounts'  => Account::latest()->get(),
                     'item_name' => false,
                     'account_name' => false,
-                    'id'  => "purchasemurghi",
+                    'id'  => "MurghiInvoice",
                     'all_reports_values' => "",
 
 
@@ -4494,24 +4375,37 @@ class ReportController extends Controller
     }
 
     public function MortalityReport(Request $req){
+        
 
-
-        if(isset($req->shade_id)){
-
+        if(isset($req->Shade_id)){
+            
+            $data = array(
+                'title' => 'Mortality Report',
+                'chick' => ChickInvoice::where('shade_id',hashids_decode($req->Shade_id))->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                                                        $query->whereDate('date', '>=', $req->from_date)->whereDate('date', '<=', $req->to_date);
+                                                    })->latest()->get(),
+                'mortality' => Mortality::where('shade_id',hashids_decode($req->Shade_id))->when(isset($req->from_date) && isset($req->to_date), function($query) use ($req){
+                                                        $query->whereDate('date', '>=', $req->from_date)->whereDate('date', '<=', $req->to_date);
+                                                    })->latest()->get(),
+                'shades' => Shade::latest()->select('id', 'name')->get(),
+                'shade_name' => Shade::where('id', hashids_decode($req->Shade_id))->value('name'),
+                'from_date' => $req->from_date,
+                'to_date' => $req->to_date,
                 
+            );  
             
         }else{
 
             $data = array(
-                'title' => 'Mortality report',
-                'shades' => Shade::latest()->get(),
+                'title' => 'Mortality Report',
+                'shades' => Shade::latest()->select('id', 'name')->get(),
             );
         }
-
+        //dd($data);
         return view('admin.report.mortality_report')->with($data);
     }
 
-    public function MortalityReportPdf(Request $req){
+    public function MortalityPdf(Request $req){
             //dd($req->from_date);
             $toDate = Carbon::parse($req->from_date);
             $fromDate = Carbon::parse($req->to_date);

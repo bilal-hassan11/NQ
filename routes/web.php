@@ -184,8 +184,12 @@ Route::middleware('auth:admin')->name('admin.')->group(function () {
         Route::get('/CashFlow', 'cashflowReport')->name('cashflowreport');
         Route::get('/CashFlowPdf', 'cashflowReportPdf')->name('cashflowreportpdf');
 
-        Route::get('/DayBook', 'DayBookReport')->name('daybook_report');
-        Route::get('/DayBookPdf', 'DayBookPdf')->name('DayBookPdf');
+        Route::get('/NewDayBook', 'NewDayBookReport')->name('newdaybook_report');
+        Route::get('/NewDayBookPdf', 'NewDayBookPdf')->name('newDayBookPdf');
+
+        Route::get('/Mortality', 'MortalityReport')->name('mortality-report');
+        Route::get('/MortalityPdf', 'MortalityPdf')->name('mortalityPdf');
+
 
         Route::get('/All_Accounts_Report', 'all_accounts_report_request')->name('all_accounts_report_request');
 
@@ -208,8 +212,7 @@ Route::middleware('auth:admin')->name('admin.')->group(function () {
         Route::get('/Medicine_Item_Report', 'medicine_item_report')->name('medicine_item_report');
         Route::get('/Medicine_Expire', 'MedicineExpireReport')->name('medicine_expire_report');
 
-        Route::get('/DayBook', 'DayBookReport')->name('daybook_report');
-
+        
         Route::get('/All_Account-Ledger', 'accounts_head_report')->name('accounts_head_report');
 
         Route::get('/item', 'itemReport')->name('item');

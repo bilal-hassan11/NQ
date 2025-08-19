@@ -52,7 +52,7 @@
               <div class="card ">
                 <div class="card-body">
                     <center>
-                        <h2 style="color:green;  justify_content:center;"><span> <i class="glyphicon glyphicon-user"></i> </span>{{@$party_name[0]['name']}}</h2>
+                        <h2 style="color:green;  justify_content:center;"><span> <i class="glyphicon glyphicon-user"></i> </span>{{@$shade_name}}</h2>
                         <h4>From {{date('d-M-Y', strtotime($from_date))}} to {{date('d-M-Y', strtotime($to_date))}}</h4>
                     </center>
                 
@@ -74,25 +74,38 @@
                         <tr class="text-dark">
                             <th>S.NO</th>
                             <th>Date</th>
-                            <th colspan="1"> Description </th>
                             <th> Quantity </th>
                             <th> Remaining Available  </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $tot_remaining = 0;?>
-                        <tr class="text-dark">
-                            <td>S.NO</td>
-                            <td>Date</td>
-                            <td colspan="1"> Description </td>
-                            <td> Quantity </td>
-                            <td> Remaining Available  </td>
-                        </tr>
-                          
+                        
+                        <?php $tot_remaining = 0; $tot_mortality = 0;?>
+                        @if(isset($chick))
+                            @foreach($chick AS $c)
+                                <tr class="text-dark">
+                                    <td><span class="waves-effect waves-light btn btn-success-light">{{$loop->iteration}}</span></td>
+                                    <td><span class="waves-effect waves-light btn btn-success-light">{{date('d-M-Y', strtotime(@$c->date))}}</span></td>
+                                    <td> <span class="waves-effect waves-light btn btn-success-light">{{number_format(@$c->quantity)}} </span></td>
+                                    <?php $tot_remaining += @$c->quantity;?>
+                                    <td><span class="waves-effect waves-light btn btn-success-light">{{number_format(@$tot_remaining)}}</span></td>
+                                </tr>
+                            @endforeach  
+                            @foreach(@$mortality AS $m)
+                                <tr class="text-dark">
+                                    <td><span class="waves-effect waves-light btn btn-info-light">{{$loop->iteration}}</span></td>
+                                    <td><span class="waves-effect waves-light btn btn-info-light">{{date('d-M-Y', strtotime(@$m->date))}}</span></td>
+                                    <td><span class="waves-effect waves-light btn btn-info-light">{{ number_format(@$m->quantity)}} (Mortality)</span></span></td>
+                                    <?php $tot_remaining -= @$m->quantity; $tot_mortality += @$m->quantity;?>
+                                    <td><span class="waves-effect waves-light btn btn-info-light"> {{number_format(@$tot_remaining)}} </span> </td>
+                                </tr>
+                            @endforeach
+                        @endif       
                     </tbody>
                     <tfoot>
-                        <td colspan="3"></td>
-                        <td ><span class="waves-effect waves-light btn btn-warning-light">{{ number_format(@$tot_remaining  ) }}</span></td>
+                        <td colspan="2">Total</td>
+                        <td ><span class="waves-effect waves-light btn btn-danger-light">{{ number_format(@$tot_mortality  ) }} Mortality</span></td>
+                        <td ><span class="waves-effect waves-light btn btn-warning-light">{{ number_format(@$tot_remaining  ) }} Remaining</span></td>
                     </tfoot>
                 </table>
                 

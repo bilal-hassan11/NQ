@@ -12,4 +12,10 @@ class Shade extends Model
 
     protected $table = 'shades';
 
+    public function chickInvoice()
+    {
+        return $this->hasMany(ChickInvoice::class, 'shade_id');
+    }
+
+
 }
