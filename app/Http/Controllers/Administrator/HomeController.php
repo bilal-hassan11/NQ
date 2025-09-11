@@ -16,61 +16,57 @@ use App\Models\MedicineInvoice;
 use App\Models\CashBook;
 use App\Models\Expense;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends AdminController
-{
+{   
+
+    public function profitReportAjax(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m'));
+
+        $profits = DB::table('murghi_invoices')
+            ->selectRaw('DATE(date) as invoice_date')
+            ->selectRaw("SUM(CASE WHEN type = 'sale' THEN net_amount ELSE 0 END) as total_sale")
+            ->selectRaw("SUM(CASE WHEN type = 'purchase' THEN net_amount ELSE 0 END) as total_purchase")
+            ->selectRaw("
+                SUM(CASE WHEN type = 'sale' THEN net_amount ELSE 0 END) -
+                SUM(CASE WHEN type = 'purchase' THEN net_amount ELSE 0 END)
+                as profit
+            ")
+            ->whereNull('deleted_at')
+            ->whereRaw("DATE_FORMAT(date, '%Y-%m') = ?", [$month])
+            ->groupByRaw('DATE(date)')
+            ->orderBy('invoice_date', 'asc')
+            ->get();
+
+        return response()->json($profits);
+    }
+
+    public function profitReport(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m')); // Default: current month
+
+        $profits = DB::table('murghi_invoice')
+            ->select(
+                DB::raw('DATE(date) as invoice_date'),
+                DB::raw("SUM(CASE WHEN type = 'sale' THEN net_amount ELSE 0 END) as total_sale"),
+                DB::raw("SUM(CASE WHEN type = 'purchase' THEN net_amount ELSE 0 END) as total_purchase"),
+                DB::raw("SUM(CASE WHEN type = 'sale' THEN net_amount ELSE 0 END) - SUM(CASE WHEN type = 'purchase' THEN net_amount ELSE 0 END) as profit")
+            )
+            ->whereNull('deleted_at')
+            ->whereRaw("DATE_FORMAT(date, '%Y-%m') = ?", [$month]) // filter by month-year
+            ->groupBy(DB::raw('DATE(date)'))
+            ->orderBy('invoice_date', 'asc')
+            ->get();
+
+        return view('reports.profit', compact('profits', 'month'));
+    }
+
     public function index()
     {
         $current_month = date('m');
-
-        //Total Active Shade 
-        $tot_shade = Shade::where('status', 'active')->count();
-        //Total Active Shade 
-        $tot_flock = Flock::where('status', 'active')->count();
-
-        //Total Active Shade Chick 
-        $tot_shade = Shade::where('status', 'active')->count();
-        //Total Medicine Purchase  
-        $tot_flock = Flock::where('status', 'active')->count();
-
-        // Sale Feed
-        $tot_sale_feed_begs = FeedInvoice::where('type', 'Sale')->whereMonth('date', $current_month)->sum('quantity');
-        $tot_sale_feed_ammount = FeedInvoice::where('type', 'Sale')->whereMonth('date', $current_month)->sum('net_amount');
-
-        //Purchase Feed
-        $tot_purchase_feed_begs = FeedInvoice::where('type', 'Purchase')->whereMonth('date', $current_month)->sum('quantity');
-        $tot_purchase_feed_ammount = FeedInvoice::where('type', 'Purchase')->whereMonth('date', $current_month)->sum('net_amount');
-
-        // Sale Return Feed
-        $tot_sale_return_feed_begs = FeedInvoice::where('type', 'Sale Return')->whereMonth('date', $current_month)->sum('quantity');
-        $tot_sale_return_feed_ammount = FeedInvoice::where('type', 'Sale Return')->whereMonth('date', $current_month)->sum('net_amount');
-
-        //Purchase Return Feed
-        $tot_purchase_return_feed_begs = FeedInvoice::where('type', 'Purchase Return')->whereMonth('date', $current_month)->sum('quantity');
-        $tot_purchase_return_feed_ammount = FeedInvoice::where('type', 'Purchase Return')->whereMonth('date', $current_month)->sum('net_amount');
-
-        //Medicine
-        $tot_sale_medicine_qty = MedicineInvoice::where('type', 'Sale')->where('date', $current_month)->sum('quantity');
-        $tot_sale_medicine_ammount = MedicineInvoice::where('type', 'Sale')->where('date', $current_month)->sum('net_amount');
-
-        $tot_purchase_medicine_qty = MedicineInvoice::where('type', 'Purchase')->where('date', $current_month)->sum('quantity');
-        $tot_purchase_medicine_ammount = MedicineInvoice::where('type', 'Purchase')->where('date', $current_month)->sum('net_amount');
-        // Sale Return Medicine
-        $tot_sale_return_medicine_qty = MedicineInvoice::where('type', 'Sale Return')->whereMonth('date', $current_month)->sum('quantity');
-        $tot_sale_return_medicine_ammount = MedicineInvoice::where('type', 'Sale Return')->whereMonth('date', $current_month)->sum('net_amount');
-
-        //Purchase Return Medicine
-        $tot_purchase_return_medicine_qty = MedicineInvoice::where('type', 'Purchase Return')->whereMonth('date', $current_month)->sum('quantity');
-        $tot_purchase_return_medicine_ammount = MedicineInvoice::where('type', 'Purchase Return')->whereMonth('date', $current_month)->sum('net_amount');
-
-
-        //Chicks 
-        $tot_sale_chick_qty = ChickInvoice::where('type', 'Sale')->where('date', $current_month)->sum('quantity');
-        $tot_sale_chick_ammount = ChickInvoice::where('type', 'Sale')->where('date', $current_month)->sum('net_amount');
-
-        $tot_purchase_chick_qty = ChickInvoice::where('type', 'Purchase')->where('date', $current_month)->sum('quantity');
-        $tot_purchase_chick_ammount = ChickInvoice::where('type', 'Purchase')->where('date', $current_month)->sum('net_amount');
-
 
         //Murghi 
         $tot_sale_murghi_qty = MurghiInvoice::where('type', 'Sale')->where('date', $current_month)->sum('quantity');
@@ -91,83 +87,18 @@ class HomeController extends AdminController
         $newDateTime = Carbon::now()->addMonth(2);
         $d = $newDateTime->toDateString();
 
-        $maxSellingProducts = MedicineInvoice::with('item')
-            ->where('type', 'Sale')
-            ->groupBy('item_id')
-            ->selectRaw('item_id, sum(quantity) as total_quantity')
-            ->orderByDesc('total_quantity')
-            ->take(10)
-            ->get();
-
-
-        $lowSellingProducts = MedicineInvoice::with('item')
-            ->where('type', 'Sale')
-            ->groupBy('item_id')
-            ->selectRaw('item_id, sum(quantity) as total_quantity')
-            ->orderBy('total_quantity')
-            ->take(10)
-            ->get();
-
-        $medicineInvoice = new MedicineInvoice();
-        $stockInfo = $medicineInvoice->getStockInfo();
-        $lowStockAlertProducts = $medicineInvoice->filterLowStock($stockInfo);
-        $expiredStock = $medicineInvoice->filterNearExpiryStock($stockInfo, 3);
-
+        
         $month = date('m');
         $data = array(
             "title"     => "Dashboad",
-            // 'sale'      => $sale_array,
-
-            // 'sale_bags' => $sale_bag_array,
-
-            'tot_sale_feed_begs' => $tot_sale_feed_begs,
-            'tot_sale_feed_ammount' => $tot_sale_feed_ammount,
-
-            'tot_purchase_feed_begs' => $tot_purchase_feed_begs,
-            'tot_purchase_feed_ammount' => $tot_purchase_feed_ammount,
-
-            'tot_sale_return_feed_begs' => $tot_sale_return_feed_begs,
-            'tot_sale_return_feed_ammount' => $tot_sale_return_feed_ammount,
-
-            'tot_purchase_return_feed_begs' => $tot_purchase_return_feed_begs,
-            'tot_purchase_return_feed_ammount' => $tot_purchase_return_feed_ammount,
-
-
-            'tot_sale_medicine_qty' => $tot_sale_medicine_qty,
-            'tot_sale_medicine_ammount' => $tot_sale_medicine_ammount,
-            'tot_purchase_medicine_qty' => $tot_purchase_medicine_qty,
-            'tot_purchase_medicine_ammount' => $tot_purchase_medicine_ammount,
-
-            'tot_sale_return_medicine_qty' => $tot_sale_return_medicine_qty,
-            'tot_sale_return_medicine_ammount' => $tot_sale_return_medicine_ammount,
-            'tot_purchase_return_medicine_qty' => $tot_purchase_return_medicine_qty,
-            'tot_purchase_return_medicine_ammount' => $tot_purchase_return_medicine_ammount,
-
-            'tot_sale_chick_qty' => $tot_sale_chick_qty,
-            'tot_sale_chick_ammount' => $tot_sale_chick_ammount,
-            'tot_purchase_chick_qty' => $tot_purchase_chick_qty,
-            'tot_purchase_chick_ammount' => $tot_purchase_chick_ammount,
-
+            
             'tot_sale_murghi_qty' => $tot_sale_murghi_qty,
             'tot_sale_murghi_ammount' => $tot_sale_murghi_ammount,
             'tot_purchase_murghi_qty' => $tot_purchase_murghi_qty,
             'tot_purchase_murghi_ammount' => $tot_purchase_murghi_ammount,
 
-            'lowStockAlertProducts' => $lowStockAlertProducts,
-            'expired_items' => $expiredStock,
-            'maxSellingProducts' => $maxSellingProducts,
-            'lowSellingProducts' => $lowSellingProducts,
-            // 'consumption' => $consumption_array,
-            // 'consumption_qty' =>   $consumption_qty,
-            // 'labels' => $labels,
-            // 'prices' => $price,
-            // 'expire_medicine' => $expire_medicine, 
-            'active_item'  => Item::where('status', '1')->latest()->get()->count(),
             'active_accounts'  => Account::where('status', '1')->latest()->get()->count(),
             'active_users'  => Staff::where('is_active', '1')->latest()->get()->count(),
-
-
-
 
         );
         //dd($data);

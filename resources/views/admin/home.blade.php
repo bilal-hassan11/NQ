@@ -14,8 +14,8 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col">
-                                                <h6 class="fw-normal fs-14">Total Active Shade</h6>
-                                                <h3 class="mb-2 number-font fs-24">{{@$tot_shade}}</h3>
+                                                <h6 class="fw-normal fs-14">Total Recievable</h6>
+                                                <h3 class="mb-2 number-font fs-24">0</h3>
                                                 <p class="text-muted mb-0"> <span class="text-danger"> <i
                                                             class="ri-arrow-down-s-line bg-danger text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
                                                         0.2%</span> last month </p>
@@ -35,8 +35,8 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col">
-                                                <h6 class="fw-normal fs-14">Total Active Flock</h6>
-                                                <h3 class="mb-2 number-font fs-24">{{@$tot_flock}}</h3>
+                                                <h6 class="fw-normal fs-14">Total Payable</h6>
+                                                <h3 class="mb-2 number-font fs-24">0</h3>
                                                 <p class="text-muted mb-0"> <span class="text-primary"> <i
                                                             class="ri-arrow-up-s-line bg-primary text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
                                                         3%</span> last month </p>
@@ -57,7 +57,7 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col">
-                                                <h6 class="fw-normal fs-14">Total Available Chicks </h6>
+                                                <h6 class="fw-normal fs-14">Total Shortage </h6>
                                                 <h3 class="mb-2 number-font fs-24">0</h3>
                                                 <p class="text-muted mb-0"> <span class="text-secondary"> <i
                                                             class="ri-arrow-up-s-line bg-secondary text-white rounded-circle fs-13 p-0 fw-semibold align-bottom"></i>
@@ -101,156 +101,6 @@
                 <br /><br />
             </div>
 
-            <!-- Feed -->
-            <div class="row">
-
-                <div class="col-xl-3 col-md-12 col-lg-6">
-
-                    <div class="card custom-card">
-
-                        <div class="card-body text-center">
-
-                            <h6 class="">
-                                <span class="text-primary">
-                                    <i class="fe fe-file-text mx-2 fs-20 text-primary-shadow  align-middle"></i>
-                                </span>
-                                Total Feed Purchase
-                            </h6>
-                            <h4 class="text-dark counter mt-0 mb-3 number-font">{{ @$tot_purchase_feed_ammount ?? 0 }}</h4>
-                            <div class="progress h-1 mt-0 mb-2">
-
-                                <div class="progress-bar progress-bar-striped bg-primary w-70" role="progressbar">
-
-                                </div>
-                            </div>
-                            <div class="row mt-4">
-
-                                <div class="col text-center">
-
-                                    <span class="text-muted"> Bags </span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_purchase_feed_begs ?? 0 }}</h4>
-                                </div>
-                                <div class="col text-center">
-
-                                    <span class="text-muted">Ammount</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font2">{{ @$tot_purchase_feed_ammount ?? 0 }}</h4>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-12 col-lg-6">
-
-                    <div class="card overflow-hidden">
-
-                        <div class="card-body text-center">
-
-                            <h6 class="">
-                                <span class="text-secondary">
-                                    <i class="ri-group-line mx-2 fs-20 text-secondary-shadow align-middle"></i>
-                                </span>
-                                Total Feed Consume
-                            </h6>
-                            <h4 class="text-dark counter mt-0 mb-3 number-font">{{ @$tot_sale_feed_ammount ?? 0 }}</h4>
-                            <div class="progress h-1 mt-0 mb-2">
-
-                                <div class="progress-bar progress-bar-striped  bg-secondary w-50" role="progressbar"></div>
-                            </div>
-                            <div class="row mt-4">
-
-
-                                <div class="col text-center">
-
-                                    <span class="text-muted">Bags</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_sale_feed_begs ?? 0 }}</h4>
-                                </div>
-                                <div class="col text-center">
-
-                                    <span class="text-muted">Ammount</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_sale_feed_ammount ?? 0 }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-12 col-lg-6">
-
-                    <div class="card custom-card">
-
-                        <div class="card-body text-center">
-
-                            <h6 class="">
-                                <span class="text-primary">
-                                    <i class="fa fa-medkit mx-2 fs-20 text-primary-shadow  align-middle"></i>
-                                </span>
-                                Total Medicine Purchase
-                            </h6>
-                            <h4 class="text-dark counter mt-0 mb-3 number-font">{{ @$tot_purchase_medicine_ammount ?? 0 }}
-                            </h4>
-                            <div class="progress h-1 mt-0 mb-2">
-
-                                <div class="progress-bar progress-bar-striped bg-primary w-70" role="progressbar">
-
-                                </div>
-                            </div>
-                            <div class="row mt-4">
-
-                                <div class="col text-center">
-
-                                    <span class="text-muted"> Qty </span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_purchase_medicine_qty ?? 0 }}
-                                    </h4>
-                                </div>
-                                <div class="col text-center">
-
-                                    <span class="text-muted">Ammount</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font2">
-                                        {{ @$tot_purchase_medicine_ammount ?? 0 }}</h4>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-12 col-lg-6">
-
-                    <div class="card overflow-hidden">
-
-                        <div class="card-body text-center">
-
-                            <h6 class="">
-                                <span class="text-secondary">
-                                    <i class="fa fa-medkit mx-2 fs-20 text-secondary-shadow align-middle"></i>
-                                </span>
-                                Total Medicine Consume
-                            </h6>
-                            <h4 class="text-dark counter mt-0 mb-3 number-font">{{ @$tot_sale_medicine_ammount ?? 0 }}
-                            </h4>
-                            <div class="progress h-1 mt-0 mb-2">
-
-                                <div class="progress-bar progress-bar-striped  bg-secondary w-50" role="progressbar">
-                                </div>
-                            </div>
-                            <div class="row mt-4">
-
-
-                                <div class="col text-center">
-
-                                    <span class="text-muted">Qty</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_sale_medicine_qty ?? 0 }}</h4>
-                                </div>
-                                <div class="col text-center">
-
-                                    <span class="text-muted">Ammount</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_sale_medicine_ammount ?? 0 }}
-                                    </h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             
             <!-- Chick And Murghi -->
             <div class="row">
@@ -265,9 +115,9 @@
                                 <span class="text-primary">
                                     <i class="fa fa-qq mx-2 fs-20 text-primary-shadow  align-middle"></i>
                                 </span>
-                                Total chick Purchase
+                                Total Murghi Purchase
                             </h6>
-                            <h4 class="text-dark counter mt-0 mb-3 number-font">{{ @$tot_purchase_chick_ammount ?? 0 }}
+                            <h4 class="text-dark counter mt-0 mb-3 number-font">{{ @$tot_purchase_murghi_ammount ?? 0 }}
                             </h4>
                             <div class="progress h-1 mt-0 mb-2">
 
@@ -280,12 +130,12 @@
                                 <div class="col text-center">
 
                                     <span class="text-muted"> Qty </span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_purchase_chick_qty ?? 0 }}</h4>
+                                    <h4 class="fw-normal mt-2 mb-0 number-font1">{{ @$tot_purchase_murghi_qty ?? 0 }}</h4>
                                 </div>
                                 <div class="col text-center">
 
                                     <span class="text-muted">Ammount</span>
-                                    <h4 class="fw-normal mt-2 mb-0 number-font2">{{ @$tot_purchase_chick_ammount ?? 0 }}
+                                    <h4 class="fw-normal mt-2 mb-0 number-font2">{{ @$tot_purchase_murghi_ammount ?? 0 }}
                                     </h4>
                                 </div>
 
@@ -413,37 +263,7 @@
                     </div>
                 </div>
                 <!-- COL END -->
-                <div class="col-md-6">
-                    <div class="card shadow-sm">
-                        <div class="card-header">
-                            <h5>Low Stock Products</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-fit datatable" id="sellingTable">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Item</th>
-                                            <th>Expiry</th>
-                                            <th>Available Quantity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($lowStockAlertProducts as $index => $item)
-                                            <tr>
-                                                <td>{{ $index + 1 }}</td>
-                                                <td>{{ $item->name ?? 0 }}</td>
-                                                <td>{{ $item->expiry_date ?? '' }}</td>
-                                                <td style="text-align: right">{{ $item->quantity ?? 0 }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
                 <div class="col-md-6">
                     <div class="card shadow-sm">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -466,98 +286,88 @@
                                         </tr>
                                     </thead>
                                     <tbody id="expiredItemsTbody">
-                                        @foreach ($expired_items as $item)
-                                            <tr>
-                                                <td>{{ $item->id ?? 0 }}</td>
-                                                <td>{{ $item->name ?? 0 }}</td>
-                                                <td>{{ $item->expiry_date ?? '' }}</td>
-                                                <td style="text-align: right">{{ $item->total_quantity ?? 0 }}</td>
-                                            </tr>
-                                        @endforeach
+                                        
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card shadow-sm">
-                        <div class="card-header">
-                            <h5>Max Sold Products</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-fit datatable" id="sellingTable">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Item</th>
-                                            <th>Quantity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($maxSellingProducts as $index => $item)
-                                            <tr>
-                                                <td>{{ $index + 1 }}</td>
-                                                <td>{{ $item->item->name ?? 0 }}</td>
-                                                <td style="text-align: right">{{ abs($item->total_quantity) ?? 0 }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card shadow-sm">
-                        <div class="card-header">
-                            <h5>Low Selling Products</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-fit datatable" id="sellingTable">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Item</th>
-                                            <th>Quantity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($lowSellingProducts as $index => $item)
-                                            <tr>
-                                                <td>{{ $index + 1 }}</td>
-                                                <td>{{ $item->item->name ?? 0 }}</td>
-                                                <td style="text-align: right">{{ abs($item->total_quantity) ?? 0 }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-               
-                <!-- <div id="hightChart">
-
-                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                            <div id="consumption_chart">
-
-                                                                                                                                                                                                                                                                                                            </div>
-
-                                                                                                                                                                                                                                                                                                            <br />
-                                                                                                                                                                                                                                                                                                            <div id="sale_chart" class="chart"></div>
-
-                                                                                                                                                                                                                                                                                                            <div class="map_canvas">
-
-                                                                                                                                                                                                                                                                                                                        <canvas id="myChart" width="auto" height="100"></canvas>
-                                                                                                                                                                                                                                                                                                            </div> -->
-                <!-- CONTAINER END -->
+                
             </div>
+
+            <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Monthly Profit Report</h5>
+                            <input type="month" id="month" class="form-control" value="{{ now()->format('Y-m') }}">
+                        </div>
+                        <div class="card-body">
+                            <canvas id="profitChart" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+
         </div>
     @endsection
     @section('page-scripts')
+        
+        <script>
+            let chart;
+
+            function loadChart(month) {
+                $.ajax({
+                    url: "{{ route('admin.profit.report.ajax') }}", 
+                    type: "GET",
+                    data: { month: month },
+                    success: function (response) {
+                        const labels = response.map(row => row.invoice_date);
+                        const sales = response.map(row => row.total_sale);
+                        const purchases = response.map(row => row.total_purchase);
+                        const profits = response.map(row => row.profit);
+
+                        if (chart) chart.destroy();
+
+                        chart = new Chart(document.getElementById('profitChart'), {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [
+                                    {
+                                        label: 'Sales',
+                                        data: sales,
+                                        borderColor: 'green',
+                                        fill: false,
+                                    },
+                                    {
+                                        label: 'Purchases',
+                                        data: purchases,
+                                        borderColor: 'red',
+                                        fill: false,
+                                    },
+                                    {
+                                        label: 'Profit',
+                                        data: profits,
+                                        borderColor: 'blue',
+                                        fill: false,
+                                    }
+                                ]
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Default load current month
+            $(document).ready(function () {
+                loadChart($("#month").val());
+            });
+
+            // Change event
+            $("#month").on("change", function () {
+                loadChart($(this).val());
+            });
+        </script>
         <script>
             $(document).ready(function() {
                 $('#sale_category').change(function() {

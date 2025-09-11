@@ -88,10 +88,25 @@ class AccountController extends Controller
 
     public function delete($id)
     {
-        Account::destroy(hashids_decode($id));
+        Account::findOrFail(hashids_decode($id))->delete();
+        
         return response()->json([
             'success'   => 'Account deleted successfully',
             'reload'    => true
         ]);
     }
+
+    public function getBalance($id, $date)
+    {
+        $accountId = hashids_decode($id); // if you're using hashids
+        $account = Account::findOrFail($accountId);
+    
+        $balance = $account->getBalance($date); // calls the model method you shared earlier
+        //dd($balance);
+        return response()->json([
+            'balance' => number_format($balance, 2),
+            'account_nature' => $account->account_nature
+        ]);
+    }
+
 }

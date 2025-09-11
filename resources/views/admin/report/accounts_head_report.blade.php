@@ -16,31 +16,46 @@
             <div class="col-12 col-sm-12">
                 <div class="card ">
                     <div class="card-header">
-                        <h3 class="card-title mb-0"> Purchase Feed Filters</h3>
+                        <h3 class="card-title mb-0"> All Accounts Head Filters</h3>
                     </div>
                     <div class="card-body">
                         <form action="" id="form">
                             <div class="row">
-                                <div class="col-md-4">
-                                    <label class="text-dark">Account</label>
-                                    <select class="form-control select2" name="parent_id" id="parent_id">
+                                <div class="col-md-4 mt-2">
+                                    <label for="">Select Head</label>
+                                    <select class="form-control select2" name="parent_id[]" id="accountFilter" multiple>
                                         <option value="" >Select Account </option>
                                     @foreach($account_types AS $account)
-                                        <option value="{{ $account->hashid }}" >{{ $account->name }}</option>
+                                        <option value="{{ $account->id }}" >{{ $account->name }}</option>
                                     @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="">From Date</label>
-                                    <input type="date" class="form-control" name="from_date" id="from_date">
+                                    <input type="date" class="form-control"  value="{{ (@$from_date) ? date('Y-m-d', strtotime($from_date)) : date('Y-m-d') }}" name="from_date" id="from_date">
                                 </div>
                                 
-                                <div class="col-md-2">
+                                <div class="col-md-2 mt-3">
                                 <input type="submit" class="btn btn-primary float-right mt-4">
                                 
                             </div>
                             
-                        </form> 
+                        </form>
+                        <div class="row">
+                        <div class="col-md-12 mt-3">
+                            <form action="{{ route('admin.reports.account_head_report_pdf') }}" method="GET" target="_blank">
+                                @csrf
+                                <input type="hidden" name="parent_id[]" id="accountInput">
+                                <input type="hidden" name="from_date" id="fromdateInput">
+                                <input type="hidden" name="id" id="idInput">
+
+                                <input type="hidden" name="generate_pdf" value="1">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="ri-download-2-line"></i> Download PDF
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                     </div>
                </div>
             </div>
@@ -58,6 +73,7 @@
                     <thead>
                         <tr class="text-dark">
                             <th>Account Name</th>
+                            <th>Phone No</th>
                             <th>Receivable Balance </th>
                             <th> Payable Balance </th>
                             
@@ -72,14 +88,16 @@
                             
                                 <tr class="text-dark">
                                     <td><span class="waves-effect waves-light btn btn-primary-light"> {{ $a->name }}</span></td>
+                                    <td><span class="waves-effect waves-light btn btn-primary-light"> {{ $a->phone_no }}</span></td>
+                                    
                                     @if(@$a->opening_balance < 0)
-                                    <td ><span class="waves-effect waves-light btn btn-info-light">{{ abs(@$a->opening_balance) }}</span></td>
+                                    <td ><span class="waves-effect waves-light btn btn-info-light">{{ number_format(abs(@$a->opening_balance) ,2) }}</span></td>
                                     <?php @$tot_rec += abs(@$a->opening_balance) ; ?>
                                         <td><span class="waves-effect waves-light btn btn-danger-light">0</span></td>
                                     @endif
                                     @if(@$a->opening_balance >= 0)
                                         <td ><span class="waves-effect waves-light btn btn-info-light">0</span></td>
-                                        <td><span class="waves-effect waves-light btn btn-danger-light">{{ abs(@$a->opening_balance) }}</span></td>
+                                        <td><span class="waves-effect waves-light btn btn-danger-light">{{ number_format(abs(@$a->opening_balance) ,2) }}</span></td>
                                         <?php @$tot_pay += abs(@$a->opening_balance) ;  @$tot_rec += 0 ;?>
                                     @endif
                                     
@@ -91,8 +109,10 @@
                     <tfoot>
                         <tr class="text-dark">
                             <th>Total :</th>
-                            <th><span class="waves-effect waves-light btn btn-success-light">{{@$tot_rec}}</span></th>
-                            <th><span class="waves-effect waves-light btn btn-warning-light">{{@$tot_pay}}</span></th>
+                            <th>-</th>
+                            
+                            <th><span class="waves-effect waves-light btn btn-success-light">{{ number_format(abs(@$tot_rec) ,2) }}</span></th>
+                            <th><span class="waves-effect waves-light btn btn-warning-light">{{ number_format(abs(@$tot_pay) ,2)}}</span></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -134,6 +154,52 @@
 
 @section('page-scripts')
 @include('admin.partials.datatable')
+<script>
+    $(document).ready(function() {
+        $('.select2').select2();
+
+        $.ajax({
+            type: 'GET',
+            url: "{{ route('admin.reports.account_head_report_pdf') }}",
+            data: function(d) {
+                    d.account_id = $('#accountInput').val();
+                    d.from_date = $('#fromdateInput').val();
+                    d.id = $('#idInput').val();
+
+                },
+            success: function(response){
+
+                console.log(response);
+            },
+            error: function(blob){
+                console.log(blob);
+            }
+        });
+
+        var id = $('#report_id').val();
+            $('#idInput').val(id);
+
+        var fromdate = $('#from_date').val();
+            $('#fromdateInput').val(fromdate);
+
+        
+        $('#accountFilter').change(function() {
+            var accountId = $(this).val();
+            $('#accountInput').val(accountId);
+
+        });
+
+        
+        $('#from_date').change(function() {
+            var fromdate = $(this).val();
+            $('#fromdateInput').val(fromdate);
+
+        });
+
+        
+
+    });
+</script>
 <script>
     $('#pdf').click(function(event){
         event.preventDefault();

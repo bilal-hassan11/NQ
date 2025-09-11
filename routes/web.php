@@ -66,8 +66,9 @@ Route::middleware('auth:admin')->name('admin.')->group(function () {
         Route::get('/migrate', 'migrate')->name('migrate');
     });
 
+    Route::get('/profit-report-ajax', [HomeController::class, 'profitReportAjax'])->name('profit.report.ajax');
 
-     //Flock
+    //Flock
      Route::controller(MortalityController::class)->prefix('mortality')->name('mortalitys.')->group(function(){
         Route::get('/', 'index')->name('index');
         Route::post('/store', 'store')->name('store');
@@ -84,7 +85,7 @@ Route::middleware('auth:admin')->name('admin.')->group(function () {
     });
     
     //Flock
-     Route::controller(FlockController::class)->prefix('flock')->name('flocks.')->group(function(){
+    Route::controller(FlockController::class)->prefix('flock')->name('flocks.')->group(function(){
         Route::get('/', 'index')->name('index');
         Route::post('/store', 'store')->name('store');
         Route::get('/edit/{id}', 'edit')->name('edit');
@@ -129,6 +130,8 @@ Route::middleware('auth:admin')->name('admin.')->group(function () {
         Route::post('/store', 'store')->name('store');
         Route::get('/edit/{id}', 'edit')->name('edit');
         Route::get('/delete/{id}', 'delete')->name('delete');
+        Route::get('/get-balance/{id}/{date}', 'getBalance')->name('getBalance');
+
     });
 
     //Payment
@@ -213,7 +216,8 @@ Route::middleware('auth:admin')->name('admin.')->group(function () {
         Route::get('/Medicine_Expire', 'MedicineExpireReport')->name('medicine_expire_report');
 
         
-        Route::get('/All_Account-Ledger', 'accounts_head_report')->name('accounts_head_report');
+        Route::get('/Account-Head-Report', 'accounts_head_report')->name('accounts_head_report');
+        Route::get('/Account-Head-Report-Pdf', 'accounts_head_report_pdf')->name('account_head_report_pdf');
 
         Route::get('/item', 'itemReport')->name('item');
         Route::get('/item-pdf', 'itemReportPdf')->name('item_pdf');

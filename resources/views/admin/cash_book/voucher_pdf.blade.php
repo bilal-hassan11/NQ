@@ -80,7 +80,7 @@
 <body>
     <div class="container">
         <div class="company-info">
-            <h1>Tawakkal Marketing Traders</h1>
+            <h1>Naqi Chickne Center</h1>
         </div>
         <div class="table-container">
             <table>
