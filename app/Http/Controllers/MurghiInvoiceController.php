@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\MurghiInvoice;
 use App\Models\Account;
 use App\Models\Item;
-use App\Models\Shade;
 use Illuminate\Support\Facades\DB;
 use App\Models\AccountLedger;
-use App\Models\WeightData;
 use App\Traits\GeneratePdfTrait;
 use Illuminate\Http\Request;
 use App\Traits\SendsWhatsAppMessages;
@@ -28,15 +26,14 @@ class MurghiInvoiceController extends Controller
 
     public function createPurchase(Request $req)
     {
-        $title = "Sale Murghi";
-        $invoice_no = generateUniqueID(new MurghiInvoice, 'Sale', 'invoice_no');
-        $accounts = Account::with(['grand_parent', 'parent'])->latest()->orderBy('name')->get();
-        $shade = Shade::latest()->get();
+        $title = "Purchase Murghi";
+        $invoice_no = generateUniqueID(new MurghiInvoice, 'Purchase', 'invoice_no');
+        $accounts = Account::with(['grand_parent', 'parent'])->where('status', 1)->where('grand_parent_id', '!=', 51)->get()->sortBy('name');
+
         $products = Item::where('category_id', 8)->get();
-        $weight_data = WeightData::latest('srno')->get();
 
         $purchase_Murghi = MurghiInvoice::with('account', 'item')
-            ->where('type', 'Sale')
+            ->where('type', 'Purchase')
             ->when(isset($req->account_id), function ($query) use ($req) {
                 $query->where('account_id', hashids_decode($req->account_id));
             })
@@ -48,33 +45,131 @@ class MurghiInvoiceController extends Controller
             })
             ->when(isset($req->from_date, $req->to_date), function ($query) use ($req) {
                 $query->whereBetween('date', [$req->from_date, $req->to_date]);
-            })
+            })->limit(50)
+            ->latest('date')
+            ->get();
+
+        $pending_Murghi = MurghiInvoice::with('account', 'item')
+            ->where('type', 'Purchase')
+            ->where('net_amount', 0)
             ->latest()
+            ->get();
+
+        return view('admin.murghi.purchase_murghi', compact(['title', 'pending_Murghi', 'invoice_no', 'accounts', 'products', 'purchase_Murghi']));
+    }
+
+    public function editPurchase($invoice_no)
+    {
+        $title = "Edit Purchase Murghi";
+        $accounts = Account::with(['grand_parent', 'parent'])->where('status', 1)->where('grand_parent_id', '!=', 51)->get()->sortBy('name');
+        $products = Item::where('category_id', 8)->get();
+        $MurghiInvoice = MurghiInvoice::where('invoice_no', $invoice_no)
+            ->where('type', 'Purchase')
+            ->with('account', 'item')
+            ->get();
+
+        return view('admin.murghi.edit_purchase_murghi', compact(['title', 'accounts', 'products', 'MurghiInvoice']));
+    }
+
+
+    public function editSale($invoice_no)
+    {
+        $title = "Edit Sale Murghi";
+        $accounts = Account::with(['grand_parent', 'parent'])->where('status', 1)->where('grand_parent_id', '!=', 51)->get()->sortBy('name');
+        $stock = $this->MurghiInvoice->getStockInfo();
+
+        $products = $stock->filter(function ($product) {
+            return $product->category_id == 8;
+        });
+
+        $medicineInvoice = MurghiInvoice::where('invoice_no', $invoice_no)
+            ->where('type', 'Sale')
             ->get();
 
         $pending_Murghi = MurghiInvoice::with('account', 'item')
             ->where('type', 'Sale')
             ->where('net_amount', 0)
+            ->latest('date')
+            ->limit(50)
+            ->get();
+
+        return view('admin.murghi.edit_sale_murghi', compact(['title', 'pending_Murghi', 'accounts', 'products', 'medicineInvoice']));
+    }
+
+    public function createSale(Request $req)
+    {
+
+        $title = "Sale Murghi";
+        $invoice_no = generateUniqueID(new MurghiInvoice, 'Sale', 'invoice_no');
+        $accounts = Account::with(['grand_parent', 'parent'])->where('status', 1)->where('grand_parent_id', '!=', 51)->get()->sortBy('name');
+
+        $MurghiInvoice = new MurghiInvoice();
+
+        $stock = $this->MurghiInvoice->getStockInfo();
+
+        $products = $stock->filter(function ($product) {
+            return $product->category_id == 8;
+        });
+
+        $sale_Murghi = $MurghiInvoice::with('account', 'item')
+            ->where('type', 'Sale')
+            ->when(isset($req->account_id), function ($query) use ($req) {
+                $query->where('account_id', $req->account_id);
+            })
+            ->when(isset($req->invoice_no), function ($query) use ($req) {
+                $query->where('invoice_no', $req->invoice_no);
+            })
+            ->when(isset($req->item_id), function ($query) use ($req) {
+                $query->where('item_id', $req->item_id);
+            })
+            ->when(isset($req->from_date, $req->to_date), function ($query) use ($req) {
+                $query->whereBetween('date', [$req->from_date, $req->to_date]);
+            })->limit(50)
+            ->latest('date')
+            ->get();
+
+        $pending_Murghi = $MurghiInvoice::with('account', 'item')
+            ->where('type', 'Sale')
+            ->where('net_amount', 0)
             ->latest()
             ->get();
 
-        return view('admin.murghi.purchase_murghi', compact(['title', 'shade', 'pending_Murghi', 'invoice_no', 'accounts', 'products', 'purchase_Murghi', 'weight_data']));
+        return view('admin.murghi.sale_murghi', compact(['title', 'pending_Murghi', 'sale_Murghi', 'invoice_no', 'accounts', 'products']));
     }
 
-    public function editPurchase($invoice_no)
+    public function createPurchaseSale(Request $req)
     {
-        $title = "Edit Sale Murghi";
-        $accounts = Account::with(['grand_parent', 'parent'])->latest()->orderBy('name')->get();
+        $title = "Purchase Murghi";
+        $invoice_no = generateUniqueID(new MurghiInvoice, 'Purchase', 'invoice_no');
+        $accounts = Account::with(['grand_parent', 'parent'])->where('status', 1)->where('grand_parent_id', '!=', 51)->get()->sortBy('name');
+
         $products = Item::where('category_id', 8)->get();
-        $shade = Shade::latest()->get();
-        $MurghiInvoice = MurghiInvoice::where('invoice_no', $invoice_no)
-            ->where('type', 'Sale')
-            ->with('account', 'item')
+
+        $purchase_Murghi = MurghiInvoice::with('account', 'item')
+            ->where('type', 'Purchase')
+            ->when(isset($req->account_id), function ($query) use ($req) {
+                $query->where('account_id', hashids_decode($req->account_id));
+            })
+            ->when(isset($req->invoice_no), function ($query) use ($req) {
+                $query->where('invoice_no', $req->invoice_no);
+            })
+            ->when(isset($req->item_id), function ($query) use ($req) {
+                $query->where('item_id', hashids_decode($req->item_id));
+            })
+            ->when(isset($req->from_date, $req->to_date), function ($query) use ($req) {
+                $query->whereBetween('date', [$req->from_date, $req->to_date]);
+            })->limit(50)
+            ->latest('date')
             ->get();
 
-        return view('admin.murghi.edit_purchase_murghi', compact(['title', 'shade', 'accounts', 'products', 'MurghiInvoice']));
-    }
+        $pending_Murghi = MurghiInvoice::with('account', 'item')
+            ->where('type', 'Purchase')
+            ->where('net_amount', 0)
+            ->latest()
+            ->get();
 
+        return view('admin.murghi.purchase_sale', compact(['title', 'invoice_no', 'accounts', 'products', 'purchase_Murghi']));
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -84,20 +179,16 @@ class MurghiInvoiceController extends Controller
         $validatedData = $request->validate([
             'invoice_no' =>  'required',
             'date' => 'required|date',
-            'shade' => 'required|exists:shades,id',
             'account' => 'required|exists:accounts,id',
             'ref_no' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'item_id.*' => 'required|exists:items,id',
             'id.*' => 'nullable',
             'purchase_price.*' => 'required|numeric',
-            'qty.*' => 'required|numeric',
-            'no_of_carats.*' => 'required|numeric',
             'sale_price.*' => 'required|numeric',
-            'weight.*' => 'required|numeric',
-            'weight_detection.*' => 'required|numeric',
-            'extra_detection.*' => 'required|numeric',
-            'quantity.*' => 'required|numeric',
+            'weight.*' => 'required',
+            'weight_detection.*' => 'required',
+            'quantity.*' => 'required',
             'amount.*' => 'required|numeric',
             'discount_in_rs.*' => 'nullable|numeric',
             'discount_in_percent.*' => 'nullable|numeric',
@@ -107,24 +198,24 @@ class MurghiInvoiceController extends Controller
 
         $date = $request->input('date');
 
-        // if ($request->type == 'Sale' || $request->type == 'Adjust Out') {
-        //     $stockErrors = $this->validateStockQuantities($validatedData);
+        if ($request->type == 'Sale' || $request->type == 'Adjust Out') {
+            $stockErrors = $this->validateStockQuantities($validatedData);
 
-        //     if (!empty($stockErrors)) {
-        //         return response()->json(['errors' => $stockErrors], 422);
-        //     }
-        // }
+            if (!empty($stockErrors)) {
+                return response()->json(['errors' => $stockErrors], 422);
+            }
+        }
 
         DB::beginTransaction();
         if ($request->has('editMode')) {
             $invoiceNumber = $request->invoice_no;
             $MurghiInvoices = MurghiInvoice::where('invoice_no', $invoiceNumber)
-                ->where('type', 'Sale')
+                ->where('type', $request->type)
                 ->get();
             $MurghiInvoiceIds = $MurghiInvoices->pluck('id');
             MurghiInvoice::whereIn('id', $MurghiInvoiceIds)->delete();
             AccountLedger::whereIn('murghi_invoice_id', $MurghiInvoiceIds)
-                ->where('type', 'Sale')
+                ->where('type', $request->type)
                 ->delete();
         } else {
             $invoiceNumber = generateUniqueID(new MurghiInvoice, $request->type, 'invoice_no');
@@ -135,32 +226,28 @@ class MurghiInvoiceController extends Controller
             $items = $validatedData['item_id'];
             foreach ($items as $index => $itemId) {
 
-                $price =  $validatedData['purchase_price'][$index];
+                $price = in_array($request->type, ['Sale', 'Adjust Out']) ? $validatedData['sale_price'][$index] : $validatedData['purchase_price'][$index];
                 $netAmount = ($price * $validatedData['quantity'][$index]) - ($validatedData['discount_in_rs'][$index] ?? 0);
-
+                $costAmount = $validatedData['quantity'][$index] * $validatedData['purchase_price'][$index];
 
                 $MurghiInvoice = MurghiInvoice::create([
                     'date' => $date,
-                    'shade_id' => $validatedData['shade'],
                     'account_id' => $validatedData['account'],
                     'ref_no' => $validatedData['ref_no'],
                     'description' => $validatedData['description'],
                     'invoice_no' => $invoiceNumber,
-                    'type' => 'Sale',
-                    'stock_type' =>  'Out',
+                    'type' => $request->type,
+                    'stock_type' => in_array($request->type, ['Purchase', 'Adjust In']) ? 'In' : 'Out',
                     'item_id' => $itemId,
-                    'qty' => $validatedData['qty'][$index],
-                    'no_of_carats' => $validatedData['no_of_carats'][$index],
-                    'purchase_price' => $validatedData['sale_price'][$index],
-                    'sale_price' => $validatedData['purchase_price'][$index],
+                    'purchase_price' => $validatedData['purchase_price'][$index],
+                    'sale_price' => $validatedData['sale_price'][$index],
                     'weight' => $validatedData['weight'][$index],
                     'weight_detection' => $validatedData['weight_detection'][$index],
-                    'extra_detection' => $validatedData['extra_detection'][$index],
-                    'quantity' =>  -$validatedData['quantity'][$index],
+                    'quantity' => in_array($request->type, ['Sale', 'Adjust Out']) ? -$validatedData['quantity'][$index] : $validatedData['quantity'][$index],
                     'amount' => $validatedData['amount'][$index],
                     'discount_in_rs' => $validatedData['discount_in_rs'][$index] ?? 0,
                     'discount_in_percent' => $validatedData['discount_in_percent'][$index] ?? 0,
-                    'total_cost' =>  $netAmount,
+                    'total_cost' => in_array($request->type, ['Sale', 'Adjust Out']) ? -$costAmount : $netAmount,
                     'net_amount' => $netAmount,
                     'expiry_date' => $validatedData['expiry_date'][$index] ?? null,
                     'whatsapp_status' => $validatedData['whatsapp_status'] ?? 'Not Sent',
@@ -169,7 +256,6 @@ class MurghiInvoiceController extends Controller
 
                 AccountLedger::create([
                     'murghi_invoice_id' => $MurghiInvoice->id,
-                    'shade_id' => $validatedData['shade'],
                     'type'  => $request->type,
                     'date' => $date,
                     'account_id' => $validatedData['account'],
@@ -189,6 +275,117 @@ class MurghiInvoiceController extends Controller
         }
     }
 
+    public function storePurchaseSale(Request $request)
+    {
+        $validatedData = $request->validate([
+            'invoice_no' => 'required',
+            'date' => 'required|date',
+            'account' => 'required|exists:accounts,id',
+            'ref_no' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'weight' => 'required|numeric',
+            'weight_detection' => 'required|numeric',
+            'final_weight' => 'required|numeric',
+            'rate' => 'required|numeric',
+            'amount' => 'required|numeric',
+            'sale_account.*' => 'required|exists:accounts,id',
+            'sale_weight.*' => 'required|numeric',
+            'sale_weight_detection.*' => 'required|numeric',
+            'sale_final_weight.*' => 'required|numeric',
+            'sale_rate.*' => 'required|numeric',
+            'sale_amount.*' => 'required|numeric',
+        ]);
+
+        $date = $request->input('date');
+
+        DB::beginTransaction();
+        try {
+            // Handle Purchase
+            $invoiceNumber = $request->invoice_no;
+            $purchaseNetAmount = $validatedData['amount'];
+
+            $MurghiInvoice = MurghiInvoice::create([
+                'date' => $date,
+                'account_id' => $validatedData['account'],
+                'ref_no' => $validatedData['ref_no'],
+                'description' => $validatedData['description'],
+                'invoice_no' => $invoiceNumber,
+                'type' => 'Purchase',
+                'stock_type' => 'In',
+                'item_id' => 208,
+                'weight' => $validatedData['weight'],
+                'weight_detection' => $validatedData['weight_detection'],
+                'quantity' => $validatedData['final_weight'],
+                'purchase_price' => $validatedData['rate'],
+                'amount' => $validatedData['amount'],
+                'net_amount' => $purchaseNetAmount,
+            ]);
+
+            AccountLedger::create([
+                'murghi_invoice_id' => $MurghiInvoice->id,
+                'type' => 'Purchase',
+                'date' => $date,
+                'account_id' => $validatedData['account'],
+                'description' => 'Invoice #: ' . $invoiceNumber . ', ' . 'Weight: ' . $validatedData['final_weight'] . ', Rate: ' . $validatedData['rate'],
+                'debit' => 0,
+                'credit' => $purchaseNetAmount,
+            ]);
+
+            // Handle Sale
+            $saleAccounts = $validatedData['sale_account'];
+            foreach ($saleAccounts as $index => $saleAccountId) {
+                $saleWeight = $validatedData['sale_weight'][$index];
+                $saleWeightDetection = $validatedData['sale_weight_detection'][$index];
+                $saleFinalWeight = $validatedData['sale_final_weight'][$index];
+                $saleRate = $validatedData['sale_rate'][$index];
+                $saleAmount = $validatedData['sale_amount'][$index];
+                $saleNetAmount = $saleAmount; // Adjust this if there are any discounts or additional calculations
+
+                $MurghiInvoiceSale = MurghiInvoice::create([
+                    'date' => $date,
+                    'account_id' => $saleAccountId,
+                    'ref_no' => $validatedData['ref_no'],
+                    'description' => $validatedData['description'],
+                    'invoice_no' => $invoiceNumber,
+                    'type' => 'Sale',
+                    'stock_type' => 'Out',
+                    'item_id' => 208,
+                    'weight' => $saleWeight,
+                    'weight_detection' => $saleWeightDetection,
+                    'quantity' => -$saleFinalWeight,
+                    'sale_price' => $saleRate,
+                    'amount' => $saleAmount,
+                    'net_amount' => $saleNetAmount,
+                ]);
+
+                AccountLedger::create([
+                    'murghi_invoice_id' => $MurghiInvoiceSale->id,
+                    'type' => 'Sale',
+                    'date' => $date,
+                    'account_id' => $saleAccountId,
+                    'description' => 'Invoice #: ' . $invoiceNumber . ', ' . 'Weight: ' . $saleFinalWeight . ', Rate: ' . $saleRate,
+                    'debit' => $saleNetAmount,
+                    'credit' => 0,
+                ]);
+            }
+            if ($request->type == 'Sale') {
+                $MurghiInvoice = MurghiInvoice::where('invoice_no', $MurghiInvoice->invoice_no)
+                    ->where('type', $request->type)
+                    ->with('account', 'item')
+                    ->get();
+                $previous_balance = $MurghiInvoice[0]->account->getBalance($MurghiInvoice[0]->date);
+                $htmlContent = view('admin.medicine.invoice_pdf', compact('MurghiInvoice', 'previous_balance'))->render();
+                $pdfPath = $this->generatePdf($htmlContent, 'Sale-' . $MurghiInvoice[0]->invoice_no);
+                $result = $this->sendWhatsAppMessage($MurghiInvoice[0]->account->phone_no, 'Sale Invoice', $pdfPath);
+            }
+
+            DB::commit();
+            return response()->json(['success' => true], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
     private function validateStockQuantities($validatedData)
     {
@@ -220,6 +417,8 @@ class MurghiInvoiceController extends Controller
 
         return $stockErrors;
     }
+
+
 
     public function singleReturn(Request $request)
     {
@@ -364,8 +563,7 @@ class MurghiInvoiceController extends Controller
         if (request()->has('generate_pdf')) {
             $html = view('admin.murghi.invoice_pdf', compact('MurghiInvoice', 'type', 'previous_balance'))->render();
             $mpdf = new Mpdf([
-                'format' => 'A4-P',
-                'margin_top' => 10,
+                'format' => 'A4-P', 'margin_top' => 10,
                 'margin_bottom' => 2,
                 'margin_left' => 2,
                 'margin_right' => 2,
@@ -376,5 +574,17 @@ class MurghiInvoiceController extends Controller
         } else {
             return view('admin.murghi.show_murghi', compact('MurghiInvoice', 'type'));
         }
+    }
+    
+    public function delete($id)
+    {
+        //dd($id);
+        MurghiInvoice::findOrFail($id)->delete();
+        AccountLedger::where('murghi_invoice_id','=',$id)->delete();
+        
+        return response()->json([
+            'success'   => 'Murghi Invoice deleted successfully',
+            'reload'    => true
+        ]);
     }
 }

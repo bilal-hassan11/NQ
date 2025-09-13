@@ -30,7 +30,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="account" class="required">Account</label>
                                 <select class="form-control select2" name="account" id="account_id">
                                     <option value="">Select Account</option>
@@ -39,17 +39,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="shade" class="required">Shade </label>
-                                    <select class="form-control select2" name="shade" id="shade_id">
-                                        <option value="">Select Shade</option>
-                                        @foreach ($shade as $s)
-                                            <option value="{{ $s->id }}">{{ $s->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
                     <div class="card-body" style="width: 100%; overflow-x: auto">
@@ -107,51 +97,7 @@
                     </div>
                 </form>
             </div>
-            <div class="row">
-                <div class="col-12 col-sm-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title mb-0">Weighbridge Data</h3>
-                        </div>
-                        <div class="card-body" style="width: 100%; overflow-x: auto">
-                            <table class="table table-bordered text-center" id="weightDataTable" style="width: 100%">
-                                <thead>
-                                    <tr>
-                                        <th>Vehicle No</th>
-                                        <th>Party Name</th>
-                                        <th>Material</th>
-                                        <th>Quantity</th>
-                                        <th>No of Carats</th>
-                                        <th>Net Weight</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($weight_data as $data)
-                                        <tr>
-                                            <td>{{ $data->vno }}</td>
-                                            <td>{{ $data->party_name }}</td>
-                                            <td>{{ $data->material_name }}</td>
-                                            <td>{{ $data->qty }}</td>
-                                            <td>{{ $data->carrat_qty }}</td>
-                                            <td>{{ $data->nwet }}</td>
-                                            <td>
-                                                <button class="btn btn-primary post-btn" data-vno="{{ $data->vno }}"
-                                                    data-party-name="{{ $data->party_name }}"
-                                                    data-material="{{ $data->material_name }}"
-                                                    data-qty="{{ $data->qty }}" data-carats="{{ $data->carrat_qty }}"
-                                                    data-weight="{{ $data->nwet }}">
-                                                    Post
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+          
 
             <div class="row">
                 <div class="col-12 col-sm-12">
@@ -214,10 +160,7 @@
 
             <div class="row">
                 <div class="col-xl-12">
-
-
                     <div class="card-body">
-
                         <div class="modal fade" id="modaldemo8" style="display: none" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered text-center" role="document">
                                 <div class="modal-content modal-content-demo">
@@ -373,7 +316,7 @@
     <script type="text/javascript">
         let productDetailsArray = {!! json_encode($products->keyBy('id')->toArray()) !!};
         $(document).ready(function() {
-            $('#weightDataTable').DataTable();
+            
             $('select.product_val').select2({
                 width: '100%',
             });

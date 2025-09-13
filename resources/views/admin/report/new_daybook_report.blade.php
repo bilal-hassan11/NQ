@@ -89,7 +89,7 @@
                                 <tr class="text-dark">
                                     <th>{{ @$pmg->id }}</th>
                                     <td> {{ @$pmg->account->name }}</td>
-                                    <td> <span class="waves-effect waves-light btn btn-danger-light"> Item Name : {{ @$pmg->item->name }} , Rate : {{ @$pmg->rate }} , Quantity : {{ @$pmg->final_weight }} </span> </td>
+                                    <td> <span class="waves-effect waves-light btn btn-danger-light"> Item Name : {{ @$pmg->item->name }} , Rate : {{ @$pmg->purchase_price }} , Quantity : {{ @$pmg->final_weight }} </span> </td>
                                     <?php @$tot_pmg_val += @$pmg->net_ammount;  ?>
                                     <td> {{ @$pmg->net_ammount }}</td>
                                     <td>0</td>

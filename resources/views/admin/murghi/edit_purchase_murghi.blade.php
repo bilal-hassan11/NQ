@@ -34,7 +34,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="account" class="required">Account</label>
                                 <select class="form-control select2" name="account" id="account_id">
                                     <option value="">Select Account</option>
@@ -45,17 +45,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                  <label for="shade" class="required">Shade </label>
-                                  <select class="form-control select2" name="shade" id="shade_id">
-                                    <option value="">Select Shade</option>
-                                    @foreach($shade as $s)
-                                    <option  value="{{ $s->id }}"  {{ $s->id == $MurghiInvoice[0]->shade_id ? 'selected' : '' }}>{{ $s->name }}</option>
-                                    @endforeach
-                                  </select>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
                     <div class="card-body" style="width: 100%; overflow-x: auto">
